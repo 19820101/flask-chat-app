@@ -35,6 +35,30 @@
         .level-low{background:#d4edda;color:#155724}
         .level-mid{background:#fff3cd;color:#856404}
         .level-high{background:#f8d7da;color:#721c24}
+        .tp-panel{margin:8px 16px;padding:20px;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);animation:fadeIn 0.3s}
+        .tp-panel h3{color:#2c3e6b;font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+        .tp-inputs{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+        .tp-inputs label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:#555}
+        .tp-inputs input[type="time"]{padding:10px 14px;font-size:16px;border:2px solid #e0e7ef;border-radius:10px;background:#f8fafc;color:#333;outline:none;min-width:140px}
+        .tp-inputs input[type="time"]:focus{border-color:#4a90d9}
+        .tp-btn{padding:10px 24px;background:#4a90d9;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:14px;transition:background 0.2s;align-self:flex-end}
+        .tp-btn:hover{background:#3a7bc8}
+        .tp-canvas-wrap{position:relative;width:100%;margin:12px 0;background:#f8fafc;border-radius:10px;overflow:hidden}
+        canvas#tpGraph{width:100%;height:280px;display:block}
+        .tp-legend{display:flex;gap:16px;justify-content:center;margin:8px 0;font-size:12px;color:#555}
+        .tp-legend span{display:flex;align-items:center;gap:4px}
+        .tp-legend span::before{content:'';display:inline-block;width:20px;height:3px;border-radius:2px}
+        .legend-s::before{background:#e74c3c}
+        .legend-c::before{background:#3498db}
+        .legend-sleep::before{background:rgba(100,100,200,0.15);height:12px}
+        .tp-results{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+        .tp-stat{background:#f8fafc;padding:12px;border-radius:10px;text-align:center}
+        .tp-stat .label{font-size:11px;color:#7a8ba6;margin-bottom:4px}
+        .tp-stat .value{font-size:18px;font-weight:bold;color:#2c3e6b}
+        .tp-stat .sub{font-size:11px;color:#999;margin-top:2px}
+        .tp-rec{margin-top:14px;padding:14px;background:#e8f8e8;border-radius:10px;border-left:4px solid #27ae60}
+        .tp-rec h4{color:#27ae60;font-size:14px;margin-bottom:6px}
+        .tp-rec p{font-size:13px;line-height:1.6;color:#333}
     </style>
 </head>
 <body>
@@ -54,7 +78,6 @@
 <script>
 var sid='s'+Math.random().toString(36).substr(2,9);
 var phase='menu',qIdx=0,answers=[],currentQ=[];
-
 var screenings={
 insomnia:{name:'不眠重症度指数(ISI)',questions:[
 {q:'寝つきの悪さ',opts:['なし(0)','軽度(1)','中等度(2)','重度(3)','非常に重度(4)'],scores:[0,1,2,3,4]},
@@ -65,7 +88,6 @@ insomnia:{name:'不眠重症度指数(ISI)',questions:[
 {q:'睡眠の問題が目立っているか',opts:['全くない(0)','少し(1)','ある程度(2)','多い(3)','非常に(4)'],scores:[0,1,2,3,4]},
 {q:'睡眠の問題についての心配',opts:['全くない(0)','少し(1)','ある程度(2)','多い(3)','非常に(4)'],scores:[0,1,2,3,4]}
 ],interpret:function(s){if(s<=7)return{level:'正常範囲',cls:'level-low',detail:'臨床的に有意な不眠は認められません。'};if(s<=14)return{level:'軽度の不眠',cls:'level-mid',detail:'軽度の不眠症状があります。睡眠衛生の改善を推奨します。'};if(s<=21)return{level:'中等度の不眠',cls:'level-high',detail:'中等度の不眠症の疑いがあります。医療機関の受診をお勧めします。'};return{level:'重度の不眠',cls:'level-high',detail:'重度の不眠症の疑いがあります。早めに睡眠専門医を受診してください。'};}},
-
 ess:{name:'エプワース眠気尺度(ESS)',questions:[
 {q:'座って読書中',opts:['眠くならない(0)','少し眠い(1)','眠い(2)','よく眠る(3)'],scores:[0,1,2,3]},
 {q:'テレビを見ている時',opts:['眠くならない(0)','少し眠い(1)','眠い(2)','よく眠る(3)'],scores:[0,1,2,3]},
@@ -76,7 +98,6 @@ ess:{name:'エプワース眠気尺度(ESS)',questions:[
 {q:'昼食後静かに座っている時',opts:['眠くならない(0)','少し眠い(1)','眠い(2)','よく眠る(3)'],scores:[0,1,2,3]},
 {q:'車の運転中、信号や渋滞で止まっている時',opts:['眠くならない(0)','少し眠い(1)','眠い(2)','よく眠る(3)'],scores:[0,1,2,3]}
 ],interpret:function(s){if(s<=10)return{level:'正常範囲',cls:'level-low',detail:'日中の眠気は正常範囲です。'};if(s<=14)return{level:'軽度の過眠',cls:'level-mid',detail:'軽度の日中過眠があります。睡眠時間や質の見直しを。'};if(s<=17)return{level:'中等度の過眠',cls:'level-mid',detail:'中等度の過眠です。ナルコレプシーや睡眠時無呼吸の可能性も。受診を推奨します。'};return{level:'重度の過眠',cls:'level-high',detail:'重度の日中過眠です。早急に睡眠専門医を受診してください。'};}},
-
 stopbang:{name:'STOP-Bangスコア(睡眠時無呼吸)',questions:[
 {q:'大きないびきをかきますか？',opts:['はい(1)','いいえ(0)'],scores:[1,0]},
 {q:'日中に疲労感や眠気がありますか？',opts:['はい(1)','いいえ(0)'],scores:[1,0]},
@@ -88,44 +109,37 @@ stopbang:{name:'STOP-Bangスコア(睡眠時無呼吸)',questions:[
 {q:'性別は男性ですか？',opts:['はい(1)','いいえ(0)'],scores:[1,0]}
 ],interpret:function(s){if(s<=2)return{level:'低リスク',cls:'level-low',detail:'睡眠時無呼吸のリスクは低いです。'};if(s<=4)return{level:'中リスク',cls:'level-mid',detail:'睡眠時無呼吸の中程度のリスクがあります。症状が続く場合は受診を。'};return{level:'高リスク',cls:'level-high',detail:'睡眠時無呼吸の高リスクです。早急に睡眠専門医を受診し、検査を受けてください。'};}}
 };
-
 window.onload=function(){
 addBot('はじめまして。Sleep Doctor Hiroki です。\nまずは簡単なスクリーニング問診で、あなたの睡眠の状態を確認しましょう。');
 setTimeout(function(){showMenu()},800);
 };
-
 function showMenu(){
 phase='menu';
 addBot('どのような症状がありますか？');
-showChoices(['眠れない・寝付けない','日中の強い眠気','いびき・無呼吸','自由に相談する'],function(i){
+showChoices(['眠れない・寝付けない','日中の強い眠気','いびき・無呼吸','体内時計の分析','自由に相談する'],function(i){
 hideChoices();
 if(i==0){addUser('眠れない・寝付けない');startScreening('insomnia');}
 else if(i==1){addUser('日中の強い眠気');startScreening('ess');}
 else if(i==2){addUser('いびき・無呼吸');startScreening('stopbang');}
+else if(i==3){addUser('体内時計の分析');showTwoProcessPanel();}
 else{addUser('自由に相談する');phase='free';addBot('どんなことでもお気軽にご相談ください。');}
 });
 }
-
 function startScreening(type){
 phase='screening';currentQ=screenings[type];qIdx=0;answers=[];
 addBot(currentQ.name+' を開始します。（全'+currentQ.questions.length+'問）');
 setTimeout(function(){askQuestion()},500);
 }
-
 function askQuestion(){
 if(qIdx>=currentQ.questions.length){finishScreening();return;}
 var q=currentQ.questions[qIdx];
 document.getElementById('q-progress').textContent='質問 '+(qIdx+1)+' / '+currentQ.questions.length;
 addBot(q.q);
 showChoices(q.opts,function(i){
-hideChoices();
-answers.push(q.scores[i]);
-addUser(q.opts[i]);
-qIdx++;
+hideChoices();answers.push(q.scores[i]);addUser(q.opts[i]);qIdx++;
 setTimeout(function(){askQuestion()},300);
 });
 }
-
 function finishScreening(){
 document.getElementById('q-progress').textContent='';
 var total=answers.reduce(function(a,b){return a+b},0);
@@ -135,46 +149,85 @@ box.innerHTML='<h3>'+currentQ.name+' 結果</h3><div class="score">'+total+' 点
 document.getElementById('messages').appendChild(box);
 document.getElementById('messages').scrollTop=document.getElementById('messages').scrollHeight;
 var msg='【スクリーニング結果】'+currentQ.name+'のスコアは'+total+'点（'+r.level+'）でした。この結果に基づいて、ICSD-3の分類に従い、考えられる疾患と推奨されるアクションを詳しく教えてください。また、追加で確認すべき鑑別質問があれば聞いてください。';
-phase='free';
+phase='free';sendToAI(msg);
+}
+function showTwoProcessPanel(){
+phase='twoprocess';
+addBot('Borbélyの2プロセスモデルで、あなたの体内時計を分析します。\n昨夜の入眠時間と今朝の起床時間を入力してください。');
+var panel=document.createElement('div');panel.className='tp-panel';panel.id='tp-panel';
+panel.innerHTML='<h3>体内時計の分析（2プロセスモデル）</h3><div class="tp-inputs"><label>入眠時間<input type="time" id="tp-bed" value="23:30"></label><label>起床時間<input type="time" id="tp-wake" value="07:00"></label><button class="tp-btn" onclick="runAnalysis()">分析する</button></div><div class="tp-canvas-wrap"><canvas id="tpGraph" width="800" height="280"></canvas></div><div class="tp-legend"><span class="legend-s">Process S（睡眠圧）</span><span class="legend-c">Process C（覚醒度）</span><span class="legend-sleep">睡眠時間帯</span></div><div id="tp-results"></div>';
+document.getElementById('messages').appendChild(panel);
+document.getElementById('messages').scrollTop=document.getElementById('messages').scrollHeight;
+}
+function runAnalysis(){
+var bed=document.getElementById('tp-bed').value;
+var wake=document.getElementById('tp-wake').value;
+if(!bed||!wake){alert('時間を入力してください');return;}
+document.getElementById('typing').textContent='分析中...';
+fetch('/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bedtime:bed,waketime:wake})})
+.then(function(r){return r.json()}).then(function(data){
+document.getElementById('typing').textContent='';
+drawGraph(data);showResults(data);
+var msg='【2プロセスモデル分析結果】入眠:'+bed+' 起床:'+wake+' 睡眠時間:'+data.sleep_duration_h.toFixed(1)+'h 概日リズムずれ:'+data.circadian_shift_min+'分 睡眠負債:'+data.sleep_debt_min+'分 推奨入眠:'+data.recommended_bedtime+' 推奨起床:'+data.recommended_waketime+'。この分析結果について、体内時計のずれの影響と、具体的な矯正方法を教えてください。';
 sendToAI(msg);
+}).catch(function(){document.getElementById('typing').textContent='';addBot('分析でエラーが発生しました。もう一度お試しください。');});
 }
-
-function showChoices(opts,cb){
-var c=document.getElementById('choices');c.innerHTML='';
-opts.forEach(function(o,i){
-var b=document.createElement('button');b.textContent=o;
-b.onclick=function(){cb(i)};c.appendChild(b);
-});
+function drawGraph(data){
+var canvas=document.getElementById('tpGraph');var ctx=canvas.getContext('2d');
+var W=canvas.width,H=canvas.height;ctx.clearRect(0,0,W,H);
+var pad={top:30,bottom:40,left:50,right:20};var gW=W-pad.left-pad.right;var gH=H-pad.top-pad.bottom;
+var ps=data.process_s;var pc=data.process_c;var hours=data.hours;
+var maxH=Math.max.apply(null,hours);var minH=Math.min.apply(null,hours);
+var allVals=ps.concat(pc);var yMin=Math.min.apply(null,allVals)*0.9;var yMax=Math.max.apply(null,allVals)*1.1;
+function xPos(h){return pad.left+(h-minH)/(maxH-minH)*gW;}
+function yPos(v){return pad.top+(1-(v-yMin)/(yMax-yMin))*gH;}
+var bedH=data.bedtime_h;var wakeH=data.waketime_h;if(wakeH<bedH)wakeH+=24;
+ctx.fillStyle='rgba(100,100,200,0.1)';
+ctx.fillRect(xPos(bedH),pad.top,xPos(wakeH)-xPos(bedH),gH);
+if(bedH+24<=maxH){ctx.fillRect(xPos(bedH+24),pad.top,xPos(Math.min(wakeH+24,maxH))-xPos(bedH+24),gH);}
+ctx.strokeStyle='#e0e7ef';ctx.lineWidth=1;
+for(var i=0;i<5;i++){var gy=pad.top+gH*i/4;ctx.beginPath();ctx.moveTo(pad.left,gy);ctx.lineTo(W-pad.right,gy);ctx.stroke();}
+ctx.fillStyle='#7a8ba6';ctx.font='11px sans-serif';ctx.textAlign='center';
+for(var h=Math.ceil(minH);h<=maxH;h+=3){var label=h%24;if(label<0)label+=24;ctx.fillText((label<10?'0':'')+label+':00',xPos(h),H-pad.bottom+18);}
+ctx.save();ctx.translate(14,H/2);ctx.rotate(-Math.PI/2);ctx.fillStyle='#7a8ba6';ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText('睡眠圧 / 覚醒度',0,0);ctx.restore();
+ctx.strokeStyle='#e74c3c';ctx.lineWidth=2.5;ctx.beginPath();
+for(var i=0;i<hours.length;i++){var x=xPos(hours[i]),y=yPos(ps[i]);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();
+ctx.strokeStyle='#3498db';ctx.lineWidth=2.5;ctx.setLineDash([6,4]);ctx.beginPath();
+for(var i=0;i<hours.length;i++){var x=xPos(hours[i]),y=yPos(pc[i]);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();ctx.setLineDash([]);
+ctx.fillStyle='#2c3e6b';ctx.font='bold 13px sans-serif';ctx.textAlign='left';ctx.fillText('Borbély 2プロセスモデル — 48時間シミュレーション',pad.left,18);
+ctx.fillStyle='#e74c3c';ctx.font='bold 11px sans-serif';ctx.fillText('S',xPos(hours[Math.floor(hours.length*0.15)]),yPos(ps[Math.floor(hours.length*0.15)])-8);
+ctx.fillStyle='#3498db';ctx.fillText('C',xPos(hours[Math.floor(hours.length*0.6)]),yPos(pc[Math.floor(hours.length*0.6)])-8);
 }
+function showResults(data){
+var r=document.getElementById('tp-results');var shift=data.circadian_shift_min;
+var shiftDir=shift>0?'後退（夜型方向）':shift<0?'前進（朝型方向）':'ずれなし';
+var debtLevel=data.sleep_debt_min>60?'level-high':data.sleep_debt_min>30?'level-mid':'level-low';
+var debtLabel=data.sleep_debt_min>60?'要注意':data.sleep_debt_min>30?'やや不足':'良好';
+r.innerHTML='<div class="tp-results"><div class="tp-stat"><div class="label">睡眠時間</div><div class="value">'+data.sleep_duration_h.toFixed(1)+'h</div><div class="sub">推奨: 7-8時間</div></div><div class="tp-stat"><div class="label">概日リズムずれ</div><div class="value">'+Math.abs(shift)+'分</div><div class="sub">'+shiftDir+'</div></div><div class="tp-stat"><div class="label">睡眠負債</div><div class="value"><span class="level '+debtLevel+'">'+data.sleep_debt_min+'分 ('+debtLabel+')</span></div></div><div class="tp-stat"><div class="label">推奨スケジュール</div><div class="value" style="font-size:14px">'+data.recommended_bedtime+' → '+data.recommended_waketime+'</div></div></div><div class="tp-rec"><h4>矯正アドバイス</h4><p>'+getAdvice(data)+'</p></div>';
+}
+function getAdvice(data){
+var shift=data.circadian_shift_min;var tips=[];
+if(shift>30){tips.push('体内時計が'+shift+'分後退しています。朝の光（起床後30分以内の高照度光）が最も効果的な矯正法です。');tips.push('夜のブルーライトを就寝2時間前からカットしましょう。');}
+else if(shift<-30){tips.push('体内時計が'+Math.abs(shift)+'分前進しています。夕方の光浴びを増やし、朝は遮光するとリズムが調整されます。');}
+else{tips.push('概日リズムは良好な範囲です。現在のスケジュールを維持しましょう。');}
+if(data.sleep_debt_min>60){tips.push('睡眠負債が大きいです。1日15-30分ずつ早めに就寝し、週末の寝だめは1時間以内にしてください。');}
+else if(data.sleep_debt_min>30){tips.push('軽度の睡眠負債があります。就寝時間を20-30分早めることを検討してください。');}
+return tips.join('\n');
+}
+function showChoices(opts,cb){var c=document.getElementById('choices');c.innerHTML='';opts.forEach(function(o,i){var b=document.createElement('button');b.textContent=o;b.onclick=function(){cb(i)};c.appendChild(b);});}
 function hideChoices(){document.getElementById('choices').innerHTML='';}
-
 function addBot(text){var c=document.getElementById('messages');var d=document.createElement('div');d.className='message bot';d.innerHTML='<img src="/doctor.jpg" alt="Dr."><div class="text">'+escapeHtml(text)+'</div>';c.appendChild(d);c.scrollTop=c.scrollHeight;}
 function addUser(text){var c=document.getElementById('messages');var d=document.createElement('div');d.className='message user';d.textContent=text;c.appendChild(d);c.scrollTop=c.scrollHeight;}
 function escapeHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
-
-function send(){
-var input=document.getElementById('input');var text=input.value.trim();if(!text)return;
-addUser(text);input.value='';sendToAI(text);
-}
-
+function send(){var input=document.getElementById('input');var text=input.value.trim();if(!text)return;addUser(text);input.value='';sendToAI(text);}
 function sendToAI(text){
 document.getElementById('typing').textContent='Dr. Hiroki が分析しています...';
 fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,session_id:sid})})
 .then(function(r){return r.json()}).then(function(data){
-document.getElementById('typing').textContent='';
-addBot(data.response);
-if(phase=='free'){
-setTimeout(function(){
-showChoices(['別の症状も調べる','問診を終了する'],function(i){
-hideChoices();
-if(i==0){addUser('別の症状も調べる');showMenu();}
-else{addUser('ありがとうございました');addBot('お大事にしてください。良い睡眠をお祈りしています。');}
-});
-},1000);
-}
+document.getElementById('typing').textContent='';addBot(data.response);
+if(phase=='free'||phase=='twoprocess'){setTimeout(function(){showChoices(['別の症状も調べる','問診を終了する'],function(i){hideChoices();if(i==0){addUser('別の症状も調べる');showMenu();}else{addUser('ありがとうございました');addBot('お大事にしてください。良い睡眠をお祈りしています。');}});},1000);}
 }).catch(function(){document.getElementById('typing').textContent='';addBot('エラーが発生しました。もう一度お試しください。');});
 }
-
 document.getElementById('input').addEventListener('keydown',function(e){if(e.key==='Enter')send()});
 </script>
 </body>
