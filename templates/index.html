@@ -7,50 +7,175 @@
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f4f8;color:#333;height:100vh;display:flex;flex-direction:column}
-        .header{background:#fff;padding:16px 24px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 8px rgba(0,0,0,0.08);z-index:10}
-        .header img{width:56px;height:56px;border-radius:50%;object-fit:cover;border:3px solid #4a90d9}
-        .header-text h1{color:#2c3e6b;font-size:20px}
-        .header-text p{color:#7a8ba6;font-size:12px}
-        .disclaimer{background:#fff3cd;color:#856404;padding:8px 24px;font-size:11px;text-align:center;border-bottom:1px solid #ffc107}
-        #messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
-        .message{max-width:80%;padding:14px 18px;border-radius:16px;font-size:15px;line-height:1.7;animation:fadeIn 0.4s ease;white-space:pre-line}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .header{background:#fff;padding:14px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+        .header img{width:50px;height:50px;border-radius:50%;object-fit:cover;border:3px solid #4a90d9}
+        .header-text h1{color:#2c3e6b;font-size:18px}
+        .header-text p{color:#7a8ba6;font-size:11px}
+        .disc{background:#fff3cd;color:#856404;padding:6px 20px;font-size:11px;text-align:center}
+        #messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+        .message{max-width:85%;padding:12px 16px;border-radius:14px;font-size:14px;line-height:1.7;animation:fadeIn 0.3s;white-space:pre-line}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
         .message.user{background:#4a90d9;color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
-        .message.bot{background:#fff;align-self:flex-start;border-bottom-left-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,0.08);display:flex;gap:10px;align-items:flex-start}
-        .message.bot img{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;margin-top:2px}
+        .message.bot{background:#fff;align-self:flex-start;border-bottom-left-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,0.08);display:flex;gap:8px}
+        .message.bot img{width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;margin-top:2px}
         .message.bot .text{flex:1}
-        .typing{padding:4px 24px;font-size:13px;color:#7a8ba6;min-height:24px}
-        .input-area{background:#fff;padding:16px 20px;display:flex;gap:12px;box-shadow:0 -2px 8px rgba(0,0,0,0.05)}
-        .input-area input{flex:1;padding:14px 18px;font-size:15px;border:2px solid #e0e7ef;border-radius:24px;background:#f8fafc;color:#333;outline:none}
+        .choices{display:flex;flex-wrap:wrap;gap:8px;padding:8px 16px}
+        .choices button{padding:10px 16px;background:#e8f0fe;color:#2c3e6b;border:2px solid #4a90d9;border-radius:20px;cursor:pointer;font-size:13px;transition:all 0.2s}
+        .choices button:hover{background:#4a90d9;color:#fff}
+        .q-progress{padding:4px 16px;font-size:12px;color:#7a8ba6}
+        .typing{padding:4px 20px;font-size:12px;color:#7a8ba6;min-height:20px}
+        .input-area{background:#fff;padding:12px 16px;display:flex;gap:10px;box-shadow:0 -2px 8px rgba(0,0,0,0.05)}
+        .input-area input{flex:1;padding:12px 16px;font-size:14px;border:2px solid #e0e7ef;border-radius:20px;background:#f8fafc;color:#333;outline:none}
         .input-area input:focus{border-color:#4a90d9}
-        .input-area button{padding:14px 28px;background:#4a90d9;color:#fff;border:none;border-radius:24px;cursor:pointer;font-size:15px}
-        .input-area button:hover{background:#3a7bc8}
-        .input-area button:disabled{background:#b0c4de;cursor:not-allowed}
+        .input-area button{padding:12px 20px;background:#4a90d9;color:#fff;border:none;border-radius:20px;cursor:pointer;font-size:14px}
+        .result-box{margin:8px 16px;padding:16px;background:#fff;border-radius:12px;border-left:4px solid #4a90d9;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+        .result-box h3{color:#2c3e6b;margin-bottom:8px;font-size:15px}
+        .result-box .score{font-size:24px;font-weight:bold;color:#4a90d9}
+        .result-box .level{display:inline-block;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:bold;margin-top:4px}
+        .level-low{background:#d4edda;color:#155724}
+        .level-mid{background:#fff3cd;color:#856404}
+        .level-high{background:#f8d7da;color:#721c24}
     </style>
 </head>
 <body>
     <div class="header">
-        <img src="/doctor.jpg" alt="Dr. Hiroki">
-        <div class="header-text">
-            <h1>Sleep Doctor Hiroki</h1>
-            <p>睡眠専門アドバイザー・上田泰己</p>
-        </div>
+        <img src="/doctor.jpg" alt="Dr.">
+        <div class="header-text"><h1>Sleep Doctor Hiroki</h1><p>睡眠専門アドバイザー・上田泰己</p></div>
     </div>
-    <div class="disclaimer">本サービスは一般的な睡眠情報の提供を目的としており、医療上の助言・診断・治療を行うものではありません。</div>
+    <div class="disc">本サービスは医療上の診断・治療を行うものではありません。スクリーニング目的の情報提供です。</div>
     <div id="messages"></div>
+    <div id="choices" class="choices"></div>
+    <div id="q-progress" class="q-progress"></div>
     <div class="typing" id="typing"></div>
     <div class="input-area">
-        <input type="text" id="input" placeholder="睡眠のお悩みをお聞かせください..." autofocus>
-        <button id="send-btn" onclick="send()">相談する</button>
+        <input type="text" id="input" placeholder="自由に相談もできます..." autofocus>
+        <button onclick="send()">送信</button>
     </div>
-    <script>
-        var sid='s'+Math.random().toString(36).substr(2,9);
-        window.onload=function(){addBot('はじめまして。Sleep Doctor Hiroki です。\n睡眠でお困りのことはありますか？\n\n眠れない、夜中に目が覚める、日中の眠気など、どんなことでもお気軽にご相談ください。')};
-        function addBot(text){var c=document.getElementById('messages');var d=document.createElement('div');d.className='message bot';d.innerHTML='<img src="/doctor.jpg" alt="Dr."><div class="text">'+escapeHtml(text)+'</div>';c.appendChild(d);c.scrollTop=c.scrollHeight}
-        function addUser(text){var c=document.getElementById('messages');var d=document.createElement('div');d.className='message user';d.textContent=text;c.appendChild(d);c.scrollTop=c.scrollHeight}
-        function escapeHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}
-        function send(){var input=document.getElementById('input');var text=input.value.trim();if(!text)return;addUser(text);input.value='';document.getElementById('send-btn').disabled=true;document.getElementById('typing').textContent='Dr. Hiroki が考えています...';fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,session_id:sid})}).then(function(r){return r.json()}).then(function(data){document.getElementById('typing').textContent='';document.getElementById('send-btn').disabled=false;addBot(data.response);input.focus()}).catch(function(){document.getElementById('typing').textContent='';document.getElementById('send-btn').disabled=false;addBot('すみません、エラーが発生しました。もう一度お試しください。')})}
-        document.getElementById('input').addEventListener('keydown',function(e){if(e.key==='Enter')send()});
-    </script>
+<script>
+var sid='s'+Math.random().toString(36).substr(2,9);
+var phase='menu',qIdx=0,answers=[],currentQ=[];
+
+var screenings={
+insomnia:{name:'不眠重症度指数(ISI)',questions:[
+{q:'寝つきの悪さ',opts:['なし(0)','軽度(1)','中等度(2)','重度(3)','非常に重度(4)'],scores:[0,1,2,3,4]},
+{q:'途中で目が覚める',opts:['なし(0)','軽度(1)','中等度(2)','重度(3)','非常に重度(4)'],scores:[0,1,2,3,4]},
+{q:'早朝に目が覚める',opts:['なし(0)','軽度(1)','中等度(2)','重度(3)','非常に重度(4)'],scores:[0,1,2,3,4]},
+{q:'睡眠パターンへの満足度',opts:['満足(0)','やや不満(1)','不満(2)','かなり不満(3)','非常に不満(4)'],scores:[0,1,2,3,4]},
+{q:'日常生活への支障',opts:['なし(0)','少し(1)','ある程度(2)','多い(3)','非常に多い(4)'],scores:[0,1,2,3,4]},
+{q:'睡眠の問題が目立っているか',opts:['全くない(0)','少し(1)','ある程度(2)','多い(3)','非常に(4)'],scores:[0,1,2,3,4]},
+{q:'睡眠の問題についての心配',opts:['全くない(0)','少し(1)','ある程度(2)','多い(3)','非常に(4)'],scores:[0,1,2,3,4]}
+],interpret:function(s){if(s<=7)return{level:'正常範囲',cls:'level-low',detail:'臨床的に有意な不眠は認められません。'};if(s<=14)return{level:'軽度の不眠',cls:'level-mid',detail:'軽度の不眠症状があります。睡眠衛生の改善を推奨します。'};if(s<=21)return{level:'中等度の不眠',cls:'level-high',detail:'中等度の不眠症の疑いがあります。医療機関の受診をお勧めします。'};return{level:'重度の不眠',cls:'level-high',detail:'重度の不眠症の疑いがあります。早めに睡眠専門医を受診してください。'};}},
+
+ess:{name:'エプワース眠気尺度(ESS)',questions:[
+{q:'座って読書中',opts:['眠くならない(0)','少し眠い(1)','眠い(2)','よく眠る(3)'],scores:[0,1,2,3]},
+{q:'テレビを見ている時',opts:['眠くならない(0)','少し眠い(1)','眠い(2)','よく眠る(3)'],scores:[0,1,2,3]},
+{q:'公共の場で座っている時',opts:['眠くならない(0)','少し眠い(1)','眠い(2)','よく眠る(3)'],scores:[0,1,2,3]},
+{q:'1時間続けて車に乗せてもらっている時',opts:['眠くならない(0)','少し眠い(1)','眠い(2)','よく眠る(3)'],scores:[0,1,2,3]},
+{q:'午後に横になって休息する時',opts:['眠くならない(0)','少し眠い(1)','眠い(2)','よく眠る(3)'],scores:[0,1,2,3]},
+{q:'座って人と話している時',opts:['眠くならない(0)','少し眠い(1)','眠い(2)','よく眠る(3)'],scores:[0,1,2,3]},
+{q:'昼食後静かに座っている時',opts:['眠くならない(0)','少し眠い(1)','眠い(2)','よく眠る(3)'],scores:[0,1,2,3]},
+{q:'車の運転中、信号や渋滞で止まっている時',opts:['眠くならない(0)','少し眠い(1)','眠い(2)','よく眠る(3)'],scores:[0,1,2,3]}
+],interpret:function(s){if(s<=10)return{level:'正常範囲',cls:'level-low',detail:'日中の眠気は正常範囲です。'};if(s<=14)return{level:'軽度の過眠',cls:'level-mid',detail:'軽度の日中過眠があります。睡眠時間や質の見直しを。'};if(s<=17)return{level:'中等度の過眠',cls:'level-mid',detail:'中等度の過眠です。ナルコレプシーや睡眠時無呼吸の可能性も。受診を推奨します。'};return{level:'重度の過眠',cls:'level-high',detail:'重度の日中過眠です。早急に睡眠専門医を受診してください。'};}},
+
+stopbang:{name:'STOP-Bangスコア(睡眠時無呼吸)',questions:[
+{q:'大きないびきをかきますか？',opts:['はい(1)','いいえ(0)'],scores:[1,0]},
+{q:'日中に疲労感や眠気がありますか？',opts:['はい(1)','いいえ(0)'],scores:[1,0]},
+{q:'睡眠中に呼吸が止まると指摘されたことは？',opts:['はい(1)','いいえ(0)'],scores:[1,0]},
+{q:'高血圧の治療を受けていますか？',opts:['はい(1)','いいえ(0)'],scores:[1,0]},
+{q:'BMIは35以上ですか？',opts:['はい(1)','いいえ(0)'],scores:[1,0]},
+{q:'年齢は50歳以上ですか？',opts:['はい(1)','いいえ(0)'],scores:[1,0]},
+{q:'首周りは40cm以上ですか？',opts:['はい(1)','いいえ(0)'],scores:[1,0]},
+{q:'性別は男性ですか？',opts:['はい(1)','いいえ(0)'],scores:[1,0]}
+],interpret:function(s){if(s<=2)return{level:'低リスク',cls:'level-low',detail:'睡眠時無呼吸のリスクは低いです。'};if(s<=4)return{level:'中リスク',cls:'level-mid',detail:'睡眠時無呼吸の中程度のリスクがあります。症状が続く場合は受診を。'};return{level:'高リスク',cls:'level-high',detail:'睡眠時無呼吸の高リスクです。早急に睡眠専門医を受診し、検査を受けてください。'};}}
+};
+
+window.onload=function(){
+addBot('はじめまして。Sleep Doctor Hiroki です。\nまずは簡単なスクリーニング問診で、あなたの睡眠の状態を確認しましょう。');
+setTimeout(function(){showMenu()},800);
+};
+
+function showMenu(){
+phase='menu';
+addBot('どのような症状がありますか？');
+showChoices(['眠れない・寝付けない','日中の強い眠気','いびき・無呼吸','自由に相談する'],function(i){
+hideChoices();
+if(i==0){addUser('眠れない・寝付けない');startScreening('insomnia');}
+else if(i==1){addUser('日中の強い眠気');startScreening('ess');}
+else if(i==2){addUser('いびき・無呼吸');startScreening('stopbang');}
+else{addUser('自由に相談する');phase='free';addBot('どんなことでもお気軽にご相談ください。');}
+});
+}
+
+function startScreening(type){
+phase='screening';currentQ=screenings[type];qIdx=0;answers=[];
+addBot(currentQ.name+' を開始します。（全'+currentQ.questions.length+'問）');
+setTimeout(function(){askQuestion()},500);
+}
+
+function askQuestion(){
+if(qIdx>=currentQ.questions.length){finishScreening();return;}
+var q=currentQ.questions[qIdx];
+document.getElementById('q-progress').textContent='質問 '+(qIdx+1)+' / '+currentQ.questions.length;
+addBot(q.q);
+showChoices(q.opts,function(i){
+hideChoices();
+answers.push(q.scores[i]);
+addUser(q.opts[i]);
+qIdx++;
+setTimeout(function(){askQuestion()},300);
+});
+}
+
+function finishScreening(){
+document.getElementById('q-progress').textContent='';
+var total=answers.reduce(function(a,b){return a+b},0);
+var r=currentQ.interpret(total);
+var box=document.createElement('div');box.className='result-box';
+box.innerHTML='<h3>'+currentQ.name+' 結果</h3><div class="score">'+total+' 点</div><br><span class="level '+r.cls+'">'+r.level+'</span><p style="margin-top:10px;font-size:13px;line-height:1.6">'+r.detail+'</p>';
+document.getElementById('messages').appendChild(box);
+document.getElementById('messages').scrollTop=document.getElementById('messages').scrollHeight;
+var msg='【スクリーニング結果】'+currentQ.name+'のスコアは'+total+'点（'+r.level+'）でした。この結果に基づいて、ICSD-3の分類に従い、考えられる疾患と推奨されるアクションを詳しく教えてください。また、追加で確認すべき鑑別質問があれば聞いてください。';
+phase='free';
+sendToAI(msg);
+}
+
+function showChoices(opts,cb){
+var c=document.getElementById('choices');c.innerHTML='';
+opts.forEach(function(o,i){
+var b=document.createElement('button');b.textContent=o;
+b.onclick=function(){cb(i)};c.appendChild(b);
+});
+}
+function hideChoices(){document.getElementById('choices').innerHTML='';}
+
+function addBot(text){var c=document.getElementById('messages');var d=document.createElement('div');d.className='message bot';d.innerHTML='<img src="/doctor.jpg" alt="Dr."><div class="text">'+escapeHtml(text)+'</div>';c.appendChild(d);c.scrollTop=c.scrollHeight;}
+function addUser(text){var c=document.getElementById('messages');var d=document.createElement('div');d.className='message user';d.textContent=text;c.appendChild(d);c.scrollTop=c.scrollHeight;}
+function escapeHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+
+function send(){
+var input=document.getElementById('input');var text=input.value.trim();if(!text)return;
+addUser(text);input.value='';sendToAI(text);
+}
+
+function sendToAI(text){
+document.getElementById('typing').textContent='Dr. Hiroki が分析しています...';
+fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,session_id:sid})})
+.then(function(r){return r.json()}).then(function(data){
+document.getElementById('typing').textContent='';
+addBot(data.response);
+if(phase=='free'){
+setTimeout(function(){
+showChoices(['別の症状も調べる','問診を終了する'],function(i){
+hideChoices();
+if(i==0){addUser('別の症状も調べる');showMenu();}
+else{addUser('ありがとうございました');addBot('お大事にしてください。良い睡眠をお祈りしています。');}
+});
+},1000);
+}
+}).catch(function(){document.getElementById('typing').textContent='';addBot('エラーが発生しました。もう一度お試しください。');});
+}
+
+document.getElementById('input').addEventListener('keydown',function(e){if(e.key==='Enter')send()});
+</script>
 </body>
 </html>
