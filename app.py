@@ -1,37 +1,99 @@
-from flask import Flask, render_template, request
-from flask_socketio import SocketIO, emit
-from datetime import datetime
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-change-this'
-socketio = SocketIO(app, cors_allowed_origins="*")
+app.config['SECRET_KEY'] = 'sleep-doctor-hiroki-secret'
 
-messages = []
+def get_hiroki_response(message):
+    msg = message.lower()
+    
+    if any(w in msg for w in ['眠れない', '不眠', '寝付けない', '入眠']):
+        return ('眠れない夜はつらいですよね。いくつかお聞きしたいのですが、'
+                '寝る前にスマホやPCを見ていませんか？ブルーライトは睡眠ホルモン（メラトニン）の分泌を抑えてしまいます。'
+                '就寝の1時間前からは画面を見ないようにしてみましょう。'
+                'また、寝室の温度は18〜22度が理想的です。')
+    
+    elif any(w in msg for w in ['途中で起きる', '中途覚醒', '夜中に目が覚める', '何度も起きる']):
+        return ('夜中に目が覚めてしまうんですね。これは中途覚醒といって、よくあるお悩みです。'
+                '考えられる原因は、アルコールの摂取、ストレス、寝室の環境（光や音）などがあります。'
+                'お酒は寝つきをよくするように感じますが、実は睡眠の質を大きく下げます。'
+                '寝る3時間前までに飲み終えるのが理想です。')
+    
+    elif any(w in msg for w in ['早く起きる', '早朝覚醒', '朝早く']):
+        return ('早朝に目が覚めてしまうんですね。加齢とともに起こりやすくなりますが、'
+                'うつ病のサインである場合もあります。2週間以上続く場合は、'
+                '一度かかりつけ医に相談することをおすすめします。'
+                '日中の適度な運動（特に夕方）は深い睡眠を促進してくれますよ。')
+    
+    elif any(w in msg for w in ['いびき', 'snore', '無呼吸', 'apnea']):
+        return ('いびきや睡眠時無呼吸症候群は、放置すると高血圧や心疾患のリスクが高まります。'
+                '横向きで寝る、枕の高さを調整する、適正体重を維持することが基本的な対策です。'
+                '大きないびきや、呼吸が止まっていると指摘されたことがあれば、'
+                '必ず睡眠専門の医療機関を受診してください。')
+    
+    elif any(w in msg for w in ['昼間眠い', '日中の眠気', '居眠り', '眠気']):
+        return ('日中の強い眠気は、夜の睡眠の質が十分でないサインかもしれません。'
+                '睡眠時間は足りていますか？成人の推奨睡眠時間は7〜9時間です。'
+                '昼食後の15〜20分の短い昼寝（パワーナップ）は効果的ですが、'
+                '30分以上寝ると逆効果になるので気をつけてください。')
+    
+    elif any(w in msg for w in ['ストレス', '不安', '心配', '考え事']):
+        return ('ストレスや不安は睡眠の大敵ですね。寝る前に「心配事ノート」をつけてみませんか？'
+                '気になることを紙に書き出すだけで、脳が「もう覚えておかなくていい」と安心します。'
+                '4-7-8呼吸法もおすすめです：4秒吸って、7秒止めて、8秒かけて吐く。'
+                '副交感神経が優位になり、リラックスできますよ。')
+    
+    elif any(w in msg for w in ['カフェイン', 'コーヒー', '紅茶', 'お茶']):
+        return ('カフェインの影響は思っているより長く続きます。'
+                '半減期は約5〜6時間なので、午後2時以降はカフェインを控えましょう。'
+                'コーヒーだけでなく、緑茶、紅茶、チョコレート、エナジードリンクにも含まれています。'
+                '代わりにカモミールティーやホットミルクがおすすめです。')
+    
+    elif any(w in msg for w in ['運動', 'エクササイズ', '体を動かす']):
+        return ('運動は睡眠の質を大きく改善します！'
+                'ただし、タイミングが重要です。就寝の2〜3時間前までに終わらせましょう。'
+                '特に夕方の軽い有酸素運動（ウォーキングなど）が効果的です。'
+                '体温が一度上がって、その後下がるタイミングで眠気が来やすくなります。')
+    
+    elif any(w in msg for w in ['薬', '睡眠薬', 'サプリ', 'メラトニン']):
+        return ('睡眠薬については、必ず医師に相談してください。自己判断は危険です。'
+                'サプリメントとしては、メラトニン、マグネシウム、グリシンなどが研究されています。'
+                'ただし、まずは生活習慣の改善から始めることを強くおすすめします。'
+                '薬に頼る前にできることはたくさんありますよ。')
+    
+    elif any(w in msg for w in ['こんにちは', 'はじめまして', 'hello', 'hi', 'よろしく']):
+        return ('こんにちは！Sleep Doctor Hiroki です。'
+                '睡眠に関するお悩みがあれば、何でもお話しください。'
+                '例えば「眠れない」「夜中に目が覚める」「日中眠い」など、'
+                'あなたの症状を教えていただければ、アドバイスいたします。')
+    
+    elif any(w in msg for w in ['ありがとう', 'ありがと', 'thanks']):
+        return ('どういたしまして！良い睡眠は健康の基本です。'
+                '今日お話ししたことを少しずつ実践してみてくださいね。'
+                'また何か気になることがあれば、いつでも相談してください。おやすみなさい。')
+    
+    else:
+        return ('ご相談ありがとうございます。もう少し詳しく教えていただけますか？'
+                '例えば、以下のようなお悩みについてアドバイスできます：\n\n'
+                '・眠れない / 寝付けない\n'
+                '・夜中に目が覚める\n'
+                '・早朝に目が覚める\n'
+                '・日中の眠気\n'
+                '・いびき / 無呼吸\n'
+                '・ストレスで眠れない\n'
+                '・カフェインと睡眠\n'
+                '・運動と睡眠\n'
+                '・睡眠薬やサプリについて')
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@socketio.on('connect')
-def handle_connect():
-    for msg in messages:
-        emit('message', msg)
-
-@socketio.on('send_message')
-def handle_message(data):
-    message = {
-        'username': data['username'],
-        'text': data['text'],
-        'timestamp': datetime.now().strftime('%H:%M')
-    }
-    messages.append(message)
-    if len(messages) > 100:
-        messages.pop(0)
-    emit('message', message, broadcast=True)
-
-@socketio.on('typing')
-def handle_typing(data):
-    emit('user_typing', {'username': data['username']}, broadcast=True, include_self=False)
+@app.route('/chat', methods=['POST'])
+def chat():
+    data = request.get_json()
+    user_message = data.get('message', '')
+    response = get_hiroki_response(user_message)
+    return jsonify({'response': response})
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
