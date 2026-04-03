@@ -36,12 +36,12 @@
         .level-mid{background:#fff3cd;color:#856404}
         .level-high{background:#f8d7da;color:#721c24}
         .tp-panel{margin:8px 16px;padding:20px;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);animation:fadeIn 0.3s}
-        .tp-panel h3{color:#2c3e6b;font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-        .tp-inputs{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+        .tp-panel h3{color:#2c3e6b;font-size:16px;margin-bottom:12px}
+        .tp-inputs{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end}
         .tp-inputs label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:#555}
         .tp-inputs input[type="time"]{padding:10px 14px;font-size:16px;border:2px solid #e0e7ef;border-radius:10px;background:#f8fafc;color:#333;outline:none;min-width:140px}
         .tp-inputs input[type="time"]:focus{border-color:#4a90d9}
-        .tp-btn{padding:10px 24px;background:#4a90d9;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:14px;transition:background 0.2s;align-self:flex-end}
+        .tp-btn{padding:10px 24px;background:#4a90d9;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:14px;transition:background 0.2s}
         .tp-btn:hover{background:#3a7bc8}
         .tp-canvas-wrap{position:relative;width:100%;margin:12px 0;background:#f8fafc;border-radius:10px;overflow:hidden}
         canvas#tpGraph{width:100%;height:280px;display:block}
@@ -56,9 +56,17 @@
         .tp-stat .label{font-size:11px;color:#7a8ba6;margin-bottom:4px}
         .tp-stat .value{font-size:18px;font-weight:bold;color:#2c3e6b}
         .tp-stat .sub{font-size:11px;color:#999;margin-top:2px}
+        .css-badge{display:inline-block;padding:6px 14px;border-radius:16px;font-size:13px;font-weight:bold;margin:4px 0}
+        .css-sufficient{background:#d4edda;color:#155724;border:2px solid #28a745}
+        .css-insufficient{background:#f8d7da;color:#721c24;border:2px solid #dc3545}
+        .mood-badge{display:inline-block;padding:4px 10px;border-radius:10px;font-size:11px;font-weight:bold}
+        .mood-low{background:#d4edda;color:#155724}
+        .mood-moderate{background:#fff3cd;color:#856404}
+        .mood-high{background:#f8d7da;color:#721c24}
         .tp-rec{margin-top:14px;padding:14px;background:#e8f8e8;border-radius:10px;border-left:4px solid #27ae60}
         .tp-rec h4{color:#27ae60;font-size:14px;margin-bottom:6px}
         .tp-rec p{font-size:13px;line-height:1.6;color:#333}
+        .ref-note{margin-top:10px;font-size:10px;color:#aaa;text-align:right}
     </style>
 </head>
 <body>
@@ -153,9 +161,9 @@ phase='free';sendToAI(msg);
 }
 function showTwoProcessPanel(){
 phase='twoprocess';
-addBot('Borbélyの2プロセスモデルで、あなたの体内時計を分析します。\n昨夜の入眠時間と今朝の起床時間を入力してください。');
+addBot('Borbelyの2プロセスモデルとCSS理論（Hong et al. 2021）で、あなたの体内時計を分析します。\n昨夜の入眠時間と今朝の起床時間を入力してください。');
 var panel=document.createElement('div');panel.className='tp-panel';panel.id='tp-panel';
-panel.innerHTML='<h3>体内時計の分析（2プロセスモデル）</h3><div class="tp-inputs"><label>入眠時間<input type="time" id="tp-bed" value="23:30"></label><label>起床時間<input type="time" id="tp-wake" value="07:00"></label><button class="tp-btn" onclick="runAnalysis()">分析する</button></div><div class="tp-canvas-wrap"><canvas id="tpGraph" width="800" height="280"></canvas></div><div class="tp-legend"><span class="legend-s">Process S（睡眠圧）</span><span class="legend-c">Process C（覚醒度）</span><span class="legend-sleep">睡眠時間帯</span></div><div id="tp-results"></div>';
+panel.innerHTML='<h3>体内時計の分析（2プロセスモデル + CSS）</h3><div class="tp-inputs"><label>入眠時間<input type="time" id="tp-bed" value="23:30"></label><label>起床時間<input type="time" id="tp-wake" value="07:00"></label><button class="tp-btn" onclick="runAnalysis()">分析する</button></div><div class="tp-canvas-wrap"><canvas id="tpGraph" width="800" height="280"></canvas></div><div class="tp-legend"><span class="legend-s">Process S（睡眠圧）</span><span class="legend-c">Process C（覚醒度）</span><span class="legend-sleep">睡眠時間帯</span></div><div id="tp-results"></div>';
 document.getElementById('messages').appendChild(panel);
 document.getElementById('messages').scrollTop=document.getElementById('messages').scrollHeight;
 }
@@ -168,7 +176,7 @@ fetch('/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body
 .then(function(r){return r.json()}).then(function(data){
 document.getElementById('typing').textContent='';
 drawGraph(data);showResults(data);
-var msg='【2プロセスモデル分析結果】入眠:'+bed+' 起床:'+wake+' 睡眠時間:'+data.sleep_duration_h.toFixed(1)+'h 概日リズムずれ:'+data.circadian_shift_min+'分 睡眠負債:'+data.sleep_debt_min+'分 推奨入眠:'+data.recommended_bedtime+' 推奨起床:'+data.recommended_waketime+'。この分析結果について、体内時計のずれの影響と、具体的な矯正方法を教えてください。';
+var msg='【CSS睡眠分析結果】入眠:'+bed+' 起床:'+wake+' 睡眠時間:'+data.sleep_duration_h+'h'+' 推定DLMO:'+data.dlmo_fmt+' 概日リズム必要睡眠:'+data.circadian_necessary_h+'h'+' CSS判定:'+data.css_label+' 概日位相ずれ:'+data.phase_delay_min+'分'+' 睡眠負債:'+data.sleep_debt_min+'分'+' 気分障害リスク:'+data.mood_risk+' 推奨入眠:'+data.recommended_bedtime+' 推奨起床:'+data.recommended_waketime+'。この分析結果に基づき、CSSを改善するための具体的な生活指導と光療法のタイミングを教えてください。';
 sendToAI(msg);
 }).catch(function(){document.getElementById('typing').textContent='';addBot('分析でエラーが発生しました。もう一度お試しください。');});
 }
@@ -194,24 +202,47 @@ ctx.strokeStyle='#e74c3c';ctx.lineWidth=2.5;ctx.beginPath();
 for(var i=0;i<hours.length;i++){var x=xPos(hours[i]),y=yPos(ps[i]);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();
 ctx.strokeStyle='#3498db';ctx.lineWidth=2.5;ctx.setLineDash([6,4]);ctx.beginPath();
 for(var i=0;i<hours.length;i++){var x=xPos(hours[i]),y=yPos(pc[i]);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();ctx.setLineDash([]);
-ctx.fillStyle='#2c3e6b';ctx.font='bold 13px sans-serif';ctx.textAlign='left';ctx.fillText('Borbély 2プロセスモデル — 48時間シミュレーション',pad.left,18);
+ctx.fillStyle='#2c3e6b';ctx.font='bold 13px sans-serif';ctx.textAlign='left';ctx.fillText('2-Process Model + CSS Analysis (48h)',pad.left,18);
 ctx.fillStyle='#e74c3c';ctx.font='bold 11px sans-serif';ctx.fillText('S',xPos(hours[Math.floor(hours.length*0.15)]),yPos(ps[Math.floor(hours.length*0.15)])-8);
 ctx.fillStyle='#3498db';ctx.fillText('C',xPos(hours[Math.floor(hours.length*0.6)]),yPos(pc[Math.floor(hours.length*0.6)])-8);
 }
 function showResults(data){
-var r=document.getElementById('tp-results');var shift=data.circadian_shift_min;
-var shiftDir=shift>0?'後退（夜型方向）':shift<0?'前進（朝型方向）':'ずれなし';
-var debtLevel=data.sleep_debt_min>60?'level-high':data.sleep_debt_min>30?'level-mid':'level-low';
-var debtLabel=data.sleep_debt_min>60?'要注意':data.sleep_debt_min>30?'やや不足':'良好';
-r.innerHTML='<div class="tp-results"><div class="tp-stat"><div class="label">睡眠時間</div><div class="value">'+data.sleep_duration_h.toFixed(1)+'h</div><div class="sub">推奨: 7-8時間</div></div><div class="tp-stat"><div class="label">概日リズムずれ</div><div class="value">'+Math.abs(shift)+'分</div><div class="sub">'+shiftDir+'</div></div><div class="tp-stat"><div class="label">睡眠負債</div><div class="value"><span class="level '+debtLevel+'">'+data.sleep_debt_min+'分 ('+debtLabel+')</span></div></div><div class="tp-stat"><div class="label">推奨スケジュール</div><div class="value" style="font-size:14px">'+data.recommended_bedtime+' → '+data.recommended_waketime+'</div></div></div><div class="tp-rec"><h4>矯正アドバイス</h4><p>'+getAdvice(data)+'</p></div>';
+var r=document.getElementById('tp-results');
+var cssCls=data.is_css?'css-sufficient':'css-insufficient';
+var cssIcon=data.is_css?'&#10003;':'&#10007;';
+var moodCls='mood-'+data.mood_risk;
+var moodLabel=data.mood_risk==='high'?'高リスク':data.mood_risk==='moderate'?'中リスク':'低リスク';
+var phaseDir=data.phase_delay_min>0?'後退（夜型）':data.phase_delay_min<0?'前進（朝型）':'正常';
+r.innerHTML=
+'<div style="text-align:center;margin-bottom:12px"><span class="css-badge '+cssCls+'">'+cssIcon+' '+data.css_label+'</span></div>'+
+'<div class="tp-results">'+
+'<div class="tp-stat"><div class="label">睡眠時間</div><div class="value">'+data.sleep_duration_h+'h</div><div class="sub">概日リズム必要量: '+data.circadian_necessary_h+'h</div></div>'+
+'<div class="tp-stat"><div class="label">推定DLMO</div><div class="value">'+data.dlmo_fmt+'</div><div class="sub">理想: 21:00頃</div></div>'+
+'<div class="tp-stat"><div class="label">概日位相ずれ</div><div class="value">'+Math.abs(data.phase_delay_min)+'分</div><div class="sub">'+phaseDir+'</div></div>'+
+'<div class="tp-stat"><div class="label">気分障害リスク</div><div class="value"><span class="mood-badge '+moodCls+'">'+moodLabel+'</span></div><div class="sub">Song et al. 2024</div></div>'+
+'<div class="tp-stat"><div class="label">睡眠負債</div><div class="value">'+data.sleep_debt_min+'分</div><div class="sub">vs 概日リズム必要量</div></div>'+
+'<div class="tp-stat"><div class="label">推奨スケジュール</div><div class="value" style="font-size:14px">'+data.recommended_bedtime+' → '+data.recommended_waketime+'</div><div class="sub">推奨: '+data.rec_duration_h+'h</div></div>'+
+'</div>'+
+'<div class="tp-rec"><h4>CSS改善アドバイス</h4><p>'+getAdvice(data)+'</p></div>'+
+'<div class="ref-note">Ref: Hong et al. iScience 2021; Song et al. eBioMedicine 2024</div>';
 }
 function getAdvice(data){
-var shift=data.circadian_shift_min;var tips=[];
-if(shift>30){tips.push('体内時計が'+shift+'分後退しています。朝の光（起床後30分以内の高照度光）が最も効果的な矯正法です。');tips.push('夜のブルーライトを就寝2時間前からカットしましょう。');}
-else if(shift<-30){tips.push('体内時計が'+Math.abs(shift)+'分前進しています。夕方の光浴びを増やし、朝は遮光するとリズムが調整されます。');}
-else{tips.push('概日リズムは良好な範囲です。現在のスケジュールを維持しましょう。');}
-if(data.sleep_debt_min>60){tips.push('睡眠負債が大きいです。1日15-30分ずつ早めに就寝し、週末の寝だめは1時間以内にしてください。');}
-else if(data.sleep_debt_min>30){tips.push('軽度の睡眠負債があります。就寝時間を20-30分早めることを検討してください。');}
+var tips=[];
+if(!data.is_css){
+tips.push('あなたの睡眠はCircadian Insufficientです。概日リズムが求める必要睡眠量('+data.circadian_necessary_h+'h)に対して実際の睡眠が不足しています。強制覚醒（forced wakefulness）が生じ、日中の眠気が増加します。');
+}else{
+tips.push('あなたの睡眠はCircadian Sufficientです。概日リズムに沿った十分な睡眠が取れています。');
+}
+if(data.phase_delay_min>60){
+tips.push('DLMOが'+Math.abs(data.phase_delay_min)+'分後退しています。起床後30分以内に高照度光(2500lux以上)を浴びることで概日位相を前進させましょう。夜間のブルーライトは就寝2時間前からカットしてください。');
+}else if(data.phase_delay_min<-60){
+tips.push('DLMOが'+Math.abs(data.phase_delay_min)+'分前進しています。夕方16-18時に光を浴び、朝は遮光することでリズムを調整できます。');
+}
+if(data.mood_risk==='high'){
+tips.push('概日位相のずれが大きく、気分障害（MDD/双極性障害）のリスクが高まっています。光療法による概日リズムの矯正が気分の安定に有効です（Song et al. 2024）。');
+}else if(data.mood_risk==='moderate'){
+tips.push('概日位相に軽度のずれがあります。規則的な光暴露スケジュールで予防的に矯正することをお勧めします。');
+}
 return tips.join('\n');
 }
 function showChoices(opts,cb){var c=document.getElementById('choices');c.innerHTML='';opts.forEach(function(o,i){var b=document.createElement('button');b.textContent=o;b.onclick=function(){cb(i)};c.appendChild(b);});}
